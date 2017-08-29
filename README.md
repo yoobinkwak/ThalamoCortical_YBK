@@ -8,8 +8,7 @@
 * Will be augmenting or augmented by DTI tractography
 
 * Led by:
-		Yoo Bin Kwak
-		Kevin Cho
+		Yoo Bin Kwak & Kevin Cho
 
 * Preliminary round began May 11th, 2017
 		Yoonji Lee assisted
