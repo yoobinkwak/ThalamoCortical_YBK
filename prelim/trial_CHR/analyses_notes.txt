@@ -1,0 +1,86 @@
+scp -r ${i}_bet 
+    (contains raw rs & t1, bet-ed rs & t1)
+
+
+1. DPABI preprocessing -- remove initial 4 ts, slice timing, realign
+    - input: bet_ed rsfMRI
+
+    - missed 12 subjects (subjects who did not go trhough 2nd round of bet) -> ran dpabi separately
+    - CHR64_KYJ missing (have dti, but no rs_
+
+    -> tr chages to 1 (from original 3.5)
+
+
+2. fix header info for tr (1 -> 3.5)
+
+
+3. registration -- epi_reg & fnirt
+    * need common base name for T1 & T1_brain
+    - rsfMRI input: tr_fixed_ra
+    
+    - ran parallel (17 cores)
+        - error at last line (can't open EPI_image for "applywarp --ref=${MNI_brain} --in=${EPI_image} --out=${Reg_dir}/rs_to_mni --warp=${Reg_dir}/rs_to_mni_warp")
+            - "rs_to_mni_warp.nii.gz" created
+            
+            - tried running the line for CHR04, seems to work fine
+
+
+4. nuisance regression
+    - 1st command line for error from "registration.sh"
+        -> ran fine (no error)
+    - ran  parallel (17 cores)
+
+
+5. downsample & temporal filter
+    - ran parallel (17 cores)
+
+
+6. corr
+    - only fisherZ, bp, fnirt outoput (took up to much space if running hp & flirt, as well)
+        - deleted nonfisherZ, hp & flirt
+        - deleted fisherZ_bp
+    -> tr changes to 1
+    -> images become "fuzzy"
+
+
+7. melodic
+    - ran with parallel (4cores)
+
+    -try rernning not using parallel (-> re_*)
+        -> bp 
+        -> 4ds_bp_fnirt_10 (bc no convergence)
+        -> 4ds_bp_fnirt_auto 
+            -> terminate called after throwing an instance of 'std::cad_alloc'
+                what(): std::bad_alloc
+        -> 3ds_bp_fnirt_auto 
+            -> terminate called after throwing an instance of 'std::cad_alloc'
+                what(): std::bad_alloc
+
+    => successful outputs:
+        -3ds 10
+        -3ds 20
+        -4ds 20
+
+ACCIDENTALLY DELETED CHR33
+
+8. dual regression
+    => output from eachIC is the right one
+        - when spliting, name output files to include number of components
+
+    - deleted dual_reg
+
+#9. ave then find biggest
+    -> tried, but not the right approach
+    => randomize
+
+9. randomize (no demo)
+    - merge each ICs across subjects, run randomize
+    - for viewing results, seems fslmaths -add is better (?) than  fslmerge
+
+
+
+running 3ds_bp_fnirt auto -- begain 5:25pm 2017/06/12
+    -> same problem
+
+
+try running melodic auto as M7
