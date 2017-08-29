@@ -11,4 +11,4 @@
 		Yoo Bin Kwak & Kevin Cho
 
 * Preliminary round began May 11th, 2017
-		Yoonji Lee assisted
+		(Yoonji Lee assisted)
