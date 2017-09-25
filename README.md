@@ -12,3 +12,6 @@
 
 * Preliminary round began May 11th, 2017
 		(Yoonji Lee assisted)
+
+# rsFC_thalamoCortical_seedbased
+thalamic segements (derived from DTI) as seed
