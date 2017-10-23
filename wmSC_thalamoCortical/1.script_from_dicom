@@ -1,0 +1,519 @@
+#!/bin/bash
+
+for subj in $@
+do
+    if [ -d ${subj}/dti ]
+    then
+        mv ${subj}/dti ${subj}/DTI
+    fi
+
+    if [ -d ${subj}/DTI ]
+    then
+
+        #moving original files
+        if [ ! -e ${subj}/DTI/data.nii.gz ]
+        then
+            mkdir $subj/DTI/dicom
+            mv $subj/DTI/*dcm $subj/DTI/dicom/
+            mv $subj/DTI/*IMA* $subj/DTI/dicom/
+            mv $subj/DTI/*hdr* $subj/DTI/dicom/
+
+        #mricron dcm into nii files
+
+            /Users/admin/bin/mricron/dcm2nii -o ${PWD}/${subj}/DTI ${PWD}/$subj/DTI/dicom
+
+
+        ##removing scouts
+            rm $subj/DTI/*SCOUT*
+            rm $subj/DTI/*scout*
+            rm ${subj}/DTI/*[Dd][Kk][Ii]*
+
+        fi
+
+        if [ ! -e ${subj}/DTI/bvals ]
+        then
+        #DTI-preprocessing1. name change
+            mv $subj/DTI/*bval $subj/DTI/bvals
+            mv $subj/DTI/*bvec $subj/DTI/bvecs
+            mv $subj/DTI/*.nii.gz $subj/DTI/data.nii.gz
+        fi
+    #
+
+
+
+
+
+    #################################################################################### Below here, can be proceeded automatically :)
+
+        #DTI-preprocessing2. eddy current
+        if [ ! -e ${subj}/DTI/data.ecclog ]
+        then
+            #mv $subj/DTI/2*.nii.gz $subj/DTI/data.nii.gz
+            /usr/local/fsl/bin/eddy_correct $subj/DTI/data.nii.gz $subj/DTI/data 0
+        fi
+    #
+    #	#B0 image extraction
+        if [ ! -e ${subj}/DTI/nodif.nii.gz ]
+        then
+            fslroi $subj/DTI/data.nii.gz $subj/DTI/nodif 0 1
+        fi
+            
+
+    #	#Bet brain extraction
+        if [ ! -e ${subj}/DTI/nodif_brain.nii.gz ]
+        then
+            bet $subj/DTI/nodif $subj/DTI/nodif_brain -m -f 0.30
+        fi
+    #
+    ##	#FDT_DTIFIT
+        if [ ! -e ${subj}/DTI/dti_FA.nii.gz ]
+        then
+            dtifit -k $subj/DTI/data -m $subj/DTI/nodif_brain_mask -r $subj/DTI/bvecs -b $subj/DTI/bvals -o $subj/DTI/dti
+        fi
+    #
+    #    #Bedpostx
+        if [ ! -e ${subj}/DTI.bedpostX/merged_th2samples.nii.gz ]
+        then
+            bedpostx $subj/DTI 
+        else
+            echo ${subj} 'Bedpost is done'
+        fi
+    else
+        echo No DTI in ${subj}
+    fi
+
+
+
+
+#********************************************************************************************************T1
+
+    if [ -d ${subj}/t1 ]
+    then
+        mv ${subj}/t1 ${subj}/T1
+    fi
+
+
+	#T1 Bet brain extraction
+	if [ ! -e ${subj}/T1/co_bias_neck_field_clean_up_0.30.nii.gz ]
+    then
+        if [ ! -e ${subj}/T1/*.nii ]
+        then
+            if [ ! -d ${subj}/T1/dicom ]
+            then
+                mkdir ${subj}/T1/dicom
+                mv ${subj}/T1/*.IMA ${subj}/T1/dicom/
+                mv ${subj}/T1/*.dcm ${subj}/T1/dicom/
+
+            fi
+            rm $subj/T1/*SCOUT*
+            /Users/admin/bin/mricron/dcm2nii -o ${PWD}/${subj}/T1 ${PWD}/$subj/T1/dicom
+            bet ${subj}/T1/co2* ${subj}/T1/co_bias_neck_field_clean_up_0.30 -B -f 0.30 -g 0 -m
+        fi
+
+        if [ `ls ${subj}/T1/co*|wc|awk -F ' ' '{print $1}'` -gt 1 ]
+        then
+            if [ `ls ${subj}/T1/co*1.nii.gz|wc|awk -F ' ' '{print $1}'` -gt 1 ]
+            then
+                rm ${subj}/T1/co*
+                /Users/admin/bin/mricron/dcm2nii -o ${PWD}/${subj}/T1 ${PWD}/$subj/T1/dicom
+                bet ${subj}/T1/co2* ${subj}/T1/co_bias_neck_field_clean_up_0.30 -B -f 0.30 -g 0 -m
+            else
+                bet ${subj}/T1/co2*1.nii.gz ${subj}/T1/co_bias_neck_field_clean_up_0.30 -B -f 0.30 -g 0 -m
+            fi
+        fi
+    fi
+
+    #if there is no FREESURFER folder within the subject folder
+    #if [ ! -d ${subj}/FREESURFER ]
+    #then
+        #if [ ! -d t1BetCollectionForFREESURFER ]
+        #then
+            #mkdir t1BetCollectionForFREESURFER
+        #fi
+
+        ##put bet image as the FREESURFER input
+        #if [ ! -e t1BetCollectionForFREESURFER/${subj}/nii.gz ]
+        #then
+            #cp ${subj}/T1/co_bias_neck_field_clean_up_0.30.nii.gz t1BetCollectionForFREESURFER/${subj}.nii.gz
+        #fi
+
+        ##Then run FREESURFER the first stage --> cp skull-removed brain --> second and third stages
+        #export SUBJECTS_DIR=${PWD}/t1BetCollectionForFREESURFER
+        #recon-all -i t1BetCollectionForFREESURFER/${subj}.nii.gz -autorecon1 -noskullstrip -subjid ${subj} 
+
+        #if [ ! -e t1BetCollectionForFREESURFER/${subj}/mri/brainmask.mgz ]
+        #then
+            #cp t1BetCollectionForFREESURFER/${subj}/mri/T1.mgz t1BetCollectionForFREESURFER/${subj}/mri/brainmask.mgz
+        #fi
+
+        #recon-all -autorecon2 -subjid ${subj} 
+        #recon-all -autorecon3 -subjid ${subj}
+
+        ##if FREESURFER fails
+        #if [ -e t1BetCollectionForFREESURFER/${subj}/error* ]
+        #then
+            #export SUBJECTS_DIR=${PWD}/t1BetCollectionForFREESURFER;recon-all -autorecon3 -subjid ${subj}
+        #fi
+
+        #if [ ! -e t1BetCollectionForFREESURFER/${subj}/error* ]
+        #then
+            #cp -r t1BetCollectionForFREESURFER/${subj} ${subj}/FREESURFER
+            #echo ${subj} FREESURFER done
+        #fi
+
+    #else
+        ##if there are FREESURFER folder within the subject
+        ##if there were error in FREESURFER
+        #if [ ! -e ${subj}/FREESURFER/mri/brainmask.mgz ]
+        #then
+            #cp ${subj}/FREESURFER/mri/T1.mgz ${subj}/FREESURFER/mri/brainmask.mgz
+        #fi
+
+        #if [ -e ${subj}/FREESURFER/scripts/error.log ]
+        #then
+            #export SUBJECTS_DIR=${PWD}/${subj}
+            #recon-all -autorecon2 -subjid FREESURFER
+            #recon-all -autorecon3 -subjid FREESURFER
+        #else
+            #echo ${subj} FREESURFER done
+        #fi
+    #fi
+
+    #if [ ! -d t1BetCollectionForFREESURFER/* ]
+    #then
+        #if [ -d t1BetCollectionForFREESURFER ]
+        #then
+            #rmdir t1BetCollectionForFREESURFER
+        #fi
+    #fi
+
+#********************************************************************************************************
+    if [ ! -e ${subj}/FREESURFER/mri/brain.nii.gz ]
+    then
+        mri_convert ${subj}/FREESURFER/mri/brain.mgz ${subj}/FREESURFER/mri/brain.nii.gz
+    fi
+
+
+#********************************************************************************************************
+	#Registration between the Bet_T1 --> Bet_Diffusion
+	if [ ! -e ${subj}/FREESURFER/mri/brain_swapdim.nii.gz ]
+    then
+        fslswapdim ${subj}/FREESURFER/mri/brain.nii.gz \
+            RL PA IS \
+            ${subj}/FREESURFER/mri/brain_swapdim.nii.gz	
+    fi
+
+
+    if [ ! -d ${subj}/registration ]
+    then
+        mkdir ${subj}/registration
+    else
+        if [ ! -e ${subj}/registration/FREESURFERT1toFA.mat ]
+        then
+            /usr/local/fsl/bin/flirt \
+                -in ${subj}/FREESURFER/mri/brain.nii.gz \
+                -ref ${subj}/DTI/dti_FA.nii.gz \
+                -out ${subj}/registration/FREESURFERT1toFA \
+                -omat ${subj}/registration/FREESURFERT1toFA.mat \
+                -bins 256 \
+                -cost mutualinfo \
+                -searchrx -180 180 \
+                -searchry -180 180 \
+                -searchrz -180 180 \
+                -dof 6  -interp trilinear
+        fi
+
+        if [ ! -e ${subj}/registration/FREESURFERT1toNodif.mat ]
+        then
+            /usr/local/fsl/bin/flirt \
+                -in ${subj}/FREESURFER/mri/brain.nii.gz \
+                -ref ${subj}/DTI/nodif_brain.nii.gz \
+                -out ${subj}/registration/FREESURFERT1toNodif \
+                -omat ${subj}/registration/FREESURFERT1toNodif.mat \
+                -bins 256 \
+                -cost mutualinfo \
+                -searchrx -180 180 \
+                -searchry -180 180 \
+                -searchrz -180 180 \
+                -dof 6  -interp trilinear
+        fi
+        #for later visualization
+        if [ ! -e ${subj}/registration/FREESURFERToT1.mat ]
+        then
+            /usr/local/fsl/bin/flirt \
+                -in ${subj}/FREESURFER/mri/brain.nii.gz \
+                -ref ${subj}/FREESURFER/mri/brain_swapdim.nii.gz \
+                -out ${subj}/registration/FREESURFERToT1 \
+                -omat ${subj}/registration/FREESURFERToT1.mat \
+                -bins 256 \
+                -cost mutualinfo \
+                -searchrx -180 180 \
+                -searchry -180 180 \
+                -searchrz -180 180 \
+                -dof 6  -interp trilinear
+        fi
+
+    fi
+
+##********************************************************************************************************
+
+    #ROI extraction
+    if [ ! -d ${subj}/ROI ] 
+    then
+        mkdir ${subj}/ROI
+    fi
+
+    if [ ! -e ${subj}/ROI/rh_OCC.nii.gz ]
+    then
+        python roiExtraction.py -S ${subj}
+
+    else
+        echo ${subj} ROI extraction done
+    fi
+
+
+    #Segmentation
+    if [ ! -d ${subj}/segmentation ]
+    then
+        mkdir ${subj}/segmentation
+    else
+        if [ ! -d ${subj}/segmentation/left ]
+        then
+            mkdir ${subj}/segmentation/left
+            mkdir ${subj}/segmentation/right
+        fi
+    fi
+
+    if [ ! -e ${subj}/segmentation/left/fdt_paths.nii.gz ]
+    then
+        rm -rf ${subj}/segmentation/left 
+        mkdir -p ${subj}/segmentation/left
+        echo ${subj}/roi/lh_LPFC.nii.gz > ${subj}/segmentation/left/targets.txt
+        echo ${subj}/roi/lh_LTC.nii.gz >> ${subj}/segmentation/left/targets.txt
+        echo ${subj}/roi/lh_MPFC.nii.gz >> ${subj}/segmentation/left/targets.txt
+        echo ${subj}/roi/lh_MTC.nii.gz >> ${subj}/segmentation/left/targets.txt
+        echo ${subj}/roi/lh_OCC.nii.gz >> ${subj}/segmentation/left/targets.txt
+        echo ${subj}/roi/lh_OFC.nii.gz >> ${subj}/segmentation/left/targets.txt
+        echo ${subj}/roi/lh_PC.nii.gz >> ${subj}/segmentation/left/targets.txt
+        echo ${subj}/roi/lh_SMC.nii.gz >> ${subj}/segmentation/left/targets.txt
+        probtrackx --mode=seedmask -x ${subj}/roi/lh_thalamus.nii.gz -l -c 0.2 -s 2000 --steplength=0.5 -P 5000 --xfm=${subj}/registration/FREESURFERT1toNodif.mat --forcedir --opd -s ${subj}/dti.bedpostx/merged -m ${subj}/dti.bedpostx/nodif_brain_mask --dir=${subj}/segmentation/left --targetmasks=${subj}/segmentation/left/targets.txt --os2t
+    else
+        echo ${subj} segmentation on the left done
+    fi
+
+
+    if [ ! -e ${subj}/segmentation/right/fdt_paths.nii.gz ]
+    then
+        rm -rf ${subj}/segmentation/right
+        mkdir -p ${subj}/segmentation/right
+        echo ${subj}/roi/rh_LPFC.nii.gz > ${subj}/segmentation/right/targets.txt
+        echo ${subj}/roi/rh_LTC.nii.gz >> ${subj}/segmentation/right/targets.txt
+        echo ${subj}/roi/rh_MPFC.nii.gz >> ${subj}/segmentation/right/targets.txt
+        echo ${subj}/roi/rh_MTC.nii.gz >> ${subj}/segmentation/right/targets.txt
+        echo ${subj}/roi/rh_OCC.nii.gz >> ${subj}/segmentation/right/targets.txt
+        echo ${subj}/roi/rh_OFC.nii.gz >> ${subj}/segmentation/right/targets.txt
+        echo ${subj}/roi/rh_PC.nii.gz >> ${subj}/segmentation/right/targets.txt
+        echo ${subj}/roi/rh_SMC.nii.gz >> ${subj}/segmentation/right/targets.txt
+        probtrackx --mode=seedmask -x ${subj}/roi/rh_thalamus.nii.gz -l -c 0.2 -s 2000 --steplength=0.5 -P 5000 --xfm=${subj}/registration/FREESURFERT1toNodif.mat --forcedir --opd -s ${subj}/dti.bedpostx/merged -m ${subj}/dti.bedpostx/nodif_brain_mask --dir=${subj}/segmentation/right --targetmasks=${subj}/segmentation/right/targets.txt --os2t &\
+    else
+        echo ${subj} segmentation on the right done
+    fi
+
+    for side in left right
+    do
+        echo ${side}
+        if [ ! -e ${subj}/segmentation/${side}/biggest.nii.gz ]
+        then
+            echo 'find the biggest in ${subj} ${side}'
+            find_the_biggest ${subj}/segmentation/${side}/seed* \
+                ${subj}/segmentation/${side}/biggest.nii.gz
+        fi
+
+        for thr in 10 20
+        do
+            if [ ! -d ${subj}/segmentation/${side}/${thr}thrP ]
+            then
+                mkdir ${subj}/segmentation/${side}/${thr}thrP
+
+            fi
+
+            if [ ! -e ${subj}/segmentation/${side}/${thr}thrP/*SMC* ]
+            then
+                for imgs in ${subj}/segmentation/${side}/seeds*
+                do
+                    filename=`basename "${imgs}"`
+                    echo ${subj} ${side} ${filename} ${thr}% thresholding
+                    echo ${filename}
+
+                    fslmaths ${imgs} -thrP ${thr} \
+                        ${subj}/segmentation/${side}/${thr}thrP/${thr}_${filename}
+
+
+                done
+            
+                find_the_biggest ${subj}/segmentation/${side}/${thr}thrP/*seeds* \
+                    ${subj}/segmentation/${side}/${thr}thrP/${thr}_biggest.nii.gz
+            else
+                echo ${subj} segmentation thresholding done
+            fi
+
+        done
+    done
+
+    if [ ! -d ${subj}/roi/swapdim ]
+    then
+        mkdir ${subj}/roi/swapdim
+    fi
+
+    for i in ${subj}/roi/*.nii.gz
+    do
+        imgname=$(basename ${i})
+        if [ ! -e ${subj}/roi/swapdim/${imgname} ]
+        then
+            echo ${imgname}
+            /usr/local/fsl/bin/flirt \
+                -in ${i} \
+                -applyxfm -init ${subj}/registration/FREESURFERtot1.mat \
+                -out ${subj}/roi/swapdim/${imgname} \
+                -paddingsize 0.0 \
+                -interp trilinear \
+                -ref ${subj}/FREESURFER/mri/brain_swapdim.nii.gz
+        fi
+    done
+
+
+
+    for side in left right
+    do
+        if [ ! -e ${subj}/roi/swapdim/thalamus_${side}.nii.gz ]
+        then
+            /usr/local/fsl/bin/flirt \
+                -in ${subj}/segmentation/${side}/biggest.nii.gz \
+                -applyxfm -init ${subj}/registration/FREESURFERtot1.mat \
+                -out ${subj}/roi/swapdim/thalamus_${side}.nii.gz \
+                -paddingsize 0.0 \
+                -interp trilinear \
+                -ref ${subj}/FREESURFER/mri/brain_swapdim.nii.gz
+        fi
+
+        echo processing ${subj} completed
+
+
+
+        if [ ! -e ${subj}/segmentation/${side}/10thrP/10_biggest.text* ]
+        then
+            fsl2ascii ${subj}/segmentation/${side}/10thrP/10_biggest.nii.gz \
+                ${subj}/segmentation/${side}/10thrP/10_biggest.text            
+        fi
+
+
+    #Layer numbers
+    #    1   LPFC
+    #    2   LTC
+    #    3   MPFC
+    #    4   MTC
+    #    5   OCC
+    #    6   OFC
+    #    7   PC
+    #    8   SMC
+
+
+
+
+    #voxel number ( same as volume in mm )
+        if [ ! -e log/segmentVolume.txt ]
+        then
+
+            echo -e subject'\t'side'\t'group'\t'LPFC'\t'LTC'\t'MPFC'\t'MTC'\t'OCC'\t'OFC'\t'PC'\t'SMC \
+                > log/segmentVolume.txt
+            echo -ne ${subj}'\t'${side}'\t' >> log/segmentVolume.txt
+
+            if [ ${subj}=="CHR"* ]
+            then
+                echo -ne CHR'\t' >> log/segmentVolume.txt
+            else
+                echo -ne NOR'\t' >> log/segmentVolume.txt
+            fi
+
+            for i in `seq 1 1 8`
+            do
+                echo -ne `fgrep -o ${i} ${subj}/segmentation/${side}/10thrP/10_biggest.text00000 |wc -l`'\t' \
+                    >> log/segmentVolume.txt
+
+            done
+            echo >> log/segmentVolume.txt
+        else
+            echo -ne ${subj}'\t'${side}'\t' >> log/segmentVolume.txt
+
+            if [ ${subj}=="CHR"* ]
+            then
+                echo -ne CHR'\t' >> log/segmentVolume.txt
+            else
+                echo -ne NOR'\t' >> log/segmentVolume.txt
+            fi
+
+            for i in `seq 1 1 8`
+            do
+                echo -ne `fgrep -o ${i} ${subj}/segmentation/${side}/10thrP/10_biggest.text00000 |wc -l`'\t' \
+                    >> log/segmentVolume.txt
+            done
+            echo >> log/segmentVolume.txt
+
+        fi
+
+        if [ ! -e log/waytotal.txt ]
+        then
+            echo -e subject'\t'side'\t'waytotal > log/waytotal.txt
+            echo -ne ${subj}'\t'${side}'\t' >> log/waytotal.txt
+            echo -ne `cat ${subj}/segmentation/${side}/waytotal` >> log/waytotal.txt
+            echo >> log/waytotal.txt
+        else
+            echo -ne ${subj}'\t'${side}'\t' >> log/waytotal.txt
+            echo -ne `cat ${subj}/segmentation/${side}/waytotal`'\n' >> log/waytotal.txt
+        fi
+
+
+        if [ ! -e ${subj}/segmentation/${side}/10thrP/8.nii.gz ]
+        then
+            echo find_the_biggest separation
+            for i in `seq 1 1 8`
+            do
+                fslmaths ${subj}/segmentation/${side}/10thrP/10_biggest.nii.gz \
+                    -thr ${i} -uthr ${i} ${subj}/segmentation/${side}/10thrP/${i}.nii.gz
+
+                fslswapdim ${subj}/segmentation/${side}/10thrP/${i}.nii.gz \
+                    RL PA IS \
+                    ${subj}/segmentation/${side}/10thrP/${i}_swapdim.nii.gz	
+            done
+        fi
+
+        if [ ! -e ${subj}/segmentation/${side}/10thrP/8_swapdim.nii.gz ]
+        then
+            echo find_the_biggest separation swapdim
+            for i in `seq 1 1 8`
+            do
+                fslswapdim ${subj}/segmentation/${side}/10thrP/${i}.nii.gz \
+                    RL PA IS \
+                    ${subj}/segmentation/${side}/10thrP/${i}_swapdim.nii.gz	
+            done
+        fi
+    done
+
+
+
+
+
+
+#------------------------------------------- stats 
+    #if [ ! -d log ]
+    #then
+        #mkdir log
+    #fi
+
+    #./stats.py -s ${subj} -cv >> log/cortexVolume.txt
+    #./stats.py -s ${subj} -rc >> log/relativeConnectivity.txt 
+    #./stats.py -s ${subj} -tbv >> log/intracranialVolume.txt 
+    #./stats.py -s ${subj} -tv >> log/thalamusVolume.txt 
+    #./stats.py -s ${subj} -ec >> log/totalConnectivity.txt 
+
+done
