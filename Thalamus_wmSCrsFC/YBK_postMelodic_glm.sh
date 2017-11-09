@@ -30,7 +30,8 @@ fsl_glm -i ${rh_thal_ds3} -d ${melodic_ic} -o ${glm_out_dir}/rh_thal_melodic_IC
 
 for map in ${melodic_dir}/stats/thresh_zstat*
 do
-	outputname=`cat remove_ext ${map}`
+	base=`cat basename ${map}`
+	outputname=`cat remove_ext ${base}`
 	fsl_glm -i ${rh_thal_ds3} -d ${map} -o -o ${glm_out_dir}/rh_thal_${outputname}
 done
 
