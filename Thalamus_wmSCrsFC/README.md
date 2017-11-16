@@ -1,6 +1,5 @@
 wmSC:
-  1. YBK_thalamus_to_whole_brain_tractography.sh
-  1b. probtrackx_postprocessing.py (by kcho) 
+  1. YBK_thalamus_to_whole_brain_tractography.sh (includes probtrackx_postprocessing.py by kcho) 
   2. YBK_postMelodic_glm.sh
   3. YBK_postMelodic_znorm_glm.py
   4. tensor ICA
