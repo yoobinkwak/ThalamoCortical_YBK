@@ -32,7 +32,7 @@ if __name__== "__main__":
 	parser = argparse.ArgumentParser()
         parser.add_argument('--mICA', '-mICA', nargs=1, help = 'mICA output directory', type=str)   
 	parser.add_argument('--side', '-side', nargs=1, help = 'left or right', type=str)
-	parser.add_argument('--voxelsize', '-vox', nargs=1, help = 'e.g., 2,3', type=str)
+	parser.add_argument('--voxelsize', '-vox', nargs=1, help = 'e.g., 3mm', type=str)
 	parser.add_argument('--smoothing', '-FWHM', nargs=1, help = 'e.g., 4fwhm', type=str)
 	args = parser.parse_args()
 
