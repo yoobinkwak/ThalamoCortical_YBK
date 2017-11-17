@@ -11,9 +11,9 @@ from nilearn import image
 def mergePerIC(mICA, side, voxelsize, smoothing):
 
     glm_dir = 'tica_results/{mICA}/dim0/glm_out'.format(mICA=mICA)
-    randomise_dir = 'OM2012_tensor_stats'
-    if not os.path.exists(randomise_dir):
-        os.mkdir(randomise_dir)
+    randomise_input = 'OM2012_tensor_stats_inputs'
+    if not os.path.exists(randomise_input):
+        os.mkdir(randomise_input)
 
     melodicIC_loc = 'tica_results/{mICA}/dim0/melodic_IC.nii.gz'.format(mICA=mICA)
     melodicIC_map = nb.load(melodicIC_loc)
@@ -21,7 +21,7 @@ def mergePerIC(mICA, side, voxelsize, smoothing):
 
     ICs=["%02d" % x for x in range(1,componentNum+1)]
     for ic in ICs:
-        merged_subjs_perIC = join(randomise_dir, '{side}_IC{ic}_{voxelsize}_{smoothing}.nii.gz'.format(ic=ic, side=side, voxelsize=voxelsize, smoothing=smoothing))
+        merged_subjs_perIC = join(randomise_input, '{side}_IC{ic}_{voxelsize}_{smoothing}.nii.gz'.format(ic=ic, side=side, voxelsize=voxelsize, smoothing=smoothing))
         if not os.path.isfile(merged_subjs_perIC):
             perSubj_perIC = [join(glm_dir, x) for x in os.listdir(glm_dir) if x.startswith('znorm') and x.endswith('stage2_thresh_zstat00{ic}.nii.gz'.format(ic=ic))]
             acrossSubjs_perIC = nilearn.image.concat_imgs(perSubj_perIC)
