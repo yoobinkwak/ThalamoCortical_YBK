@@ -204,6 +204,9 @@ do
             flirt -interp nearestneighbour -in masks/rh_thalamus_HOSC_60.nii.gz -ref masks/rh_thalamus_HOSC_60.nii.gz -applyisoxfm 4 -out masks/rh_thalamus_HOSC_60_ds4.nii.gz 
         fi
 
+	if [ ! -e ${RS_preproc}/L_thal_on_bp.nii.gz ] ; then
+            fslmaths ${bp2mni}/bp2mni.nii.gz -mas masks/lh_thalamus_HOSC_60.nii.gz ${RS_preproc}/L_thal_on_bp.nii.gz 
+        fi
         if [ ! -e ${RS_preproc}/L_thal_on_bp_ds3.nii.gz ] ; then
             fslmaths ${RS_preproc}/bp2mni_ds3.nii.gz -mas masks/lh_thalamus_HOSC_60_ds3.nii.gz ${RS_preproc}/L_thal_on_bp_ds3.nii.gz 
         fi
@@ -211,6 +214,9 @@ do
             fslmaths ${RS_preproc}/bp2mni_ds4.nii.gz -mas masks/lh_thalamus_HOSC_60_ds4.nii.gz ${RS_preproc}/L_thal_on_bp_ds4.nii.gz 
         fi
         
+	if [ ! -e ${RS_preproc}/R_thal_on_bp.nii.gz ] ; then
+            fslmaths ${bp2mni}/bp2mni.nii.gz -mas masks/rh_thalamus_HOSC_60.nii.gz ${RS_preproc}/R_thal_on_bp.nii.gz 
+        fi
         if [ ! -e ${RS_preproc}/R_thal_on_bp_ds3.nii.gz ] ; then
             fslmaths ${RS_preproc}/bp2mni_ds3.nii.gz -mas masks/rh_thalamus_HOSC_60_ds3.nii.gz ${RS_preproc}/R_thal_on_bp_ds3.nii.gz 
         fi
