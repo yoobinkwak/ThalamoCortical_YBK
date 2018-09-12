@@ -1,0 +1,122 @@
+0,FEP01_KWJ/RSFC/Bi_ds3_fisherZ.nii.gz,FEP01_KWJ/test_RSFC/Bi_ds3_fisherZ.nii.gz,94902666
+1,FEP01_KWJ/RSFC/Bi_ds3_fisherZ_s3.nii.gz,FEP01_KWJ/test_RSFC/Bi_ds3_fisherZ_s3.nii.gz,814581
+2,FEP01_KWJ/RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,FEP01_KWJ/test_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,94828698
+
+0,FEP01_KWJ/RSFC/Bi_ds3_fisherZ.nii.gz,FEP01_KWJ/pre_RSFC/Bi_ds3_fisherZ.nii.gz,94902666
+1,FEP01_KWJ/RSFC/Bi_ds3_fisherZ_s3.nii.gz,FEP01_KWJ/pre_RSFC/Bi_ds3_fisherZ_s3.nii.gz,814581
+2,FEP01_KWJ/RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,FEP01_KWJ/pre_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,94828698
+
+0,NOR99_KS/RSFC/Bi_ds3_fisherZ.nii.gz,NOR99_KS/test_RSFC/Bi_ds3_fisherZ.nii.gz,94751096
+1,NOR99_KS/RSFC/Bi_ds3_fisherZ_s3.nii.gz,NOR99_KS/test_RSFC/Bi_ds3_fisherZ_s3.nii.gz,848878
+2,NOR99_KS/RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,NOR99_KS/test_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,94552968
+
+0,NOR99_KS/RSFC/Bi_ds3_fisherZ.nii.gz,NOR99_KS/pre_RSFC/Bi_ds3_fisherZ.nii.gz,94751096
+1,NOR99_KS/RSFC/Bi_ds3_fisherZ_s3.nii.gz,NOR99_KS/pre_RSFC/Bi_ds3_fisherZ_s3.nii.gz,848878
+2,NOR99_KS/RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,NOR99_KS/pre_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,94552968
+
+0,FEP01_KWJ/test_RSFC/Bi_ds3_fisherZ.nii.gz,FEP01_KWJ/pre_RSFC/Bi_ds3_fisherZ.nii.gz,94766887
+1,FEP01_KWJ/test_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,FEP01_KWJ/pre_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,94828698
+
+0,NOR99_KS/test_RSFC/Bi_ds3_fisherZ.nii.gz,NOR99_KS/pre_RSFC/Bi_ds3_fisherZ.nii.gz,94625086
+1,NOR99_KS/test_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,NOR99_KS/pre_RSFC/with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz,94552968
+
+
+
+
+
+###################### FEP01
+
+## RSFC
+a = nb.load('Bi_ds3_fisherZ.nii.gz')
+b = nb.load('Bi_ds3_fisherZ_s3.nii.gz')
+ad = a.get_data()
+bd = b.get_data()
+x = nb.load('with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz')
+xd = x.get_data()
+
+## pre_RSFC
+c = nb.load('Bi_ds3_fisherZ.nii.gz')
+d = nb.load('Bi_ds3_fisherZ_s3.nii.gz')
+cd = c.get_data()
+dd = d.get_data()
+y = nb.load('with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz')
+yd = y.get_data()
+
+## test_RSFC
+e = nb.load('Bi_ds3_fisherZ.nii.gz')
+f = nb.load('Bi_ds3_fisherZ_s3.nii.gz')
+ed = e.get_data()
+fd = f.get_data()
+z = nb.load('with_spatial_smoothing/Bi_ds3_fisherZ.nii.gz')
+zd = z.get_data()
+
+
+
+np.isnan(ad).sum()
+    94766887
+
+np.isnan(bd).sum()
+    0
+
+np.isnan(cd).sum()
+    94766887
+
+np.isnan(dd).sum()
+    0
+
+
+np.sum(ad)
+    nan
+
+np.sum(bd)
+    329360.97
+
+np.sum(cd)
+    nan
+
+np.sum(dd)
+    329367.34
+
+np.sum(ed)
+    nan
+
+np.isnan(ed).sum()
+    94766887
+
+np.isnan(fd).sum()
+    0
+
+np.sum(fd)
+    329367.34
+
+
+np.isnan(xd).sum()
+    94828698
+
+np.isnan(yd).sum()
+    94828698
+
+np.isnan(zd).sum()
+    94828698
+
+
+
+
+np.sum(np.where(ad[:,:,:,:] != 0))
+    62358851457
+
+np.sum(np.where(cd[:,:,:,:] != 0))
+    62358851457
+
+np.sum(np.where(ed[:,:,:,:] != 0))
+    62358851457
+
+
+np.sum(np.where(bd[:,:,:,:] != 0))
+    42715625889
+
+np.sum(np.where(dd[:,:,:,:] != 0))
+    42715625889
+
+np.sum(np.where(fd[:,:,:,:] != 0))
+    42715625889
