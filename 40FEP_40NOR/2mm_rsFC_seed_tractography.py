@@ -5,7 +5,7 @@ from multiprocessing import Pool
 import sys
 
 
-dataLoc = '/Volumes/extHDD_YB/rsFC_to_wmSC'
+dataLoc = '/Volume/CCNC_G1_3/rsFC_to_wmSC'
 sub_dir = ['ds3_bi_nosmooth_20ICs']
 
 
@@ -40,7 +40,7 @@ def run_commands(subject_class):
             nocov_filename = ''.join(nocov_img.replace('t0.95_concatenated_ds3_bi_',' ').replace('.nii.gz',' ').split())
             nocov_tract_dir = '{}/{}'.format(directory, nocov_filename)
             
-            command = 'CUDA_VISIBLE_DEVICES={gpu_num} /usr/local/fsl/bin/probtrackx2_gpu \
+            command = 'CUDA_VISIBLE_DEVICES={gpu_num} /usr/share/fsl/5.0/bin/probtrackx2_gpu \
                 -x {nocov_thal_roi} \
                 -l \
                 --onewaycondition \
@@ -65,7 +65,7 @@ def run_commands(subject_class):
                            reorient_mni2t1w2nodif = join(subject_class.reg_dir, 'mni2reorient_t1w2nodif_coeff.nii.gz'),
                            reorient_nodif2t1w2mni = join(subject_class.reg_dir, 'reorient_nodif2t1w2mni_coeff.nii.gz'),
                            tract_dir = nocov_tract_dir,
-                           mniMask = '/usr/local/fsl/data/standard/MNI152_T1_2mm_brain_mask.nii.gz')
+                           mniMask = '/usr/share/fsl/5.0/data/standard/MNI152_T1_2mm_brain_mask.nii.gz')
         
             if not isfile(join(nocov_tract_dir, 'fdt_paths.nii.gz')):
                 commands.append(re.sub('\s+', ' ', command))
